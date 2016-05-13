@@ -1,5 +1,8 @@
 #[macro_use]
 extern crate glium;
+extern crate rusty_gauntlet;
+use rusty_gauntlet::level::*;
+use std::path::Path;
 
 fn main() {
     use glium::{DisplayBuild, Surface};
@@ -8,6 +11,9 @@ fn main() {
         .with_title(format!("Rusty Gauntlet™"))
         .build_glium()
         .unwrap();
+
+    let my_level = level::Level::new(Path::new("test_level.map"));
+    my_level.debug_print();
 
     loop {
         let mut target = display.draw();
