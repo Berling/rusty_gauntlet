@@ -14,7 +14,12 @@ fn main() {
         .build_glium()
         .unwrap();
 
-    let my_level = level::Level::new(Path::new("test_level.map"));
+    let mut my_level = level::Level::new(Path::new("test_level.map"));
+    let mut player_pos = (2,2);
+    player_pos = my_level.interact(player_pos,level::Direction::Right);
+    player_pos = my_level.interact(player_pos,level::Direction::Right);
+    player_pos = my_level.interact(player_pos,level::Direction::Down);
+    my_level.interact(player_pos,level::Direction::Down);
     my_level.debug_print();
 
     loop {

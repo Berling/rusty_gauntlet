@@ -1,11 +1,33 @@
 pub mod level {
+    pub enum Direction {
+        Up, Down, Left, Right
+    }
+    fn move_in_dir(x: i32, y: i32, dir: Direction) -> (i32,i32) {
+        return match dir {
+            Direction::Up    => (x,y-1),
+            Direction::Down  => (x,y+1),
+            Direction::Left  => (x-1,y),
+            Direction::Right => (x+1,y),
+        }
+    }
+
+
+    #[derive(Copy, Clone)]
     pub enum TileType {
         Floor,
         Wall
     }
 
+    #[derive(Copy, Clone)]
+    pub enum Entity {
+        Player,
+        Dragon
+    }
+
+    #[derive(Copy, Clone)]
     pub struct Tile {
-        pub tile_type: TileType
+        pub tile_type: TileType,
+        pub entity: Option<Entity>
     }
 
     pub struct Level {
@@ -41,9 +63,14 @@ pub mod level {
                     let tt = match c {
                         '#' => TileType::Wall,
                         '.' => TileType::Floor,
-                        _ => TileType::Wall
+                        _ => TileType::Floor
                     };
-                    row.push(Tile{tile_type: tt});
+                    let entity = match c {
+                        '@' => Some(Entity::Player),
+                        'D' => Some(Entity::Dragon),
+                        _ => None
+                    };
+                    row.push(Tile{tile_type: tt, entity: entity});
                 }
                 if row.len()!=w as usize {
                     panic!("Error in map file. Too few columns ({}) in row {}.", row.len(), data.len()+1);
@@ -57,19 +84,56 @@ pub mod level {
             Level {width: w, height: h, tiles: data}
         }
 
-        pub fn debug_print(&self) {
+        pub fn debug_print(&self, ) {
             println!("Level data ({} x {}):", self.width, self.height);
             for line in &self.tiles {
                 for tile in line {
-                    match tile.tile_type {
-                        TileType::Floor => print!("."),
-                        TileType::Wall => print!("#")
+                    match tile.entity {
+                        Some(Entity::Player) => print!("@"),
+                        Some(Entity::Dragon) => print!("D"),
+                        None => {
+                            match tile.tile_type {
+                                TileType::Floor => print!("."),
+                                TileType::Wall => print!("#")
+                            }
+                        }
                     }
                 }
                 println!("");
             }
 
             println!("----------------");
+        }
+
+        pub fn interact(&mut self, pos: (i32,i32), dir: Direction) -> (i32,i32) {
+            let mut new_pos = pos;
+            let (x,y) = pos;
+            let mut curr_tile = self.tiles[y as usize][x as usize];
+            {
+                let (nx,ny) = move_in_dir(x,y,dir);
+                let mut new_tile = &mut self.tiles[ny as usize][nx as usize];
+
+                match new_tile.tile_type {
+                    TileType::Wall => return new_pos,
+                    _ => {}
+                }
+
+                match curr_tile.entity {
+                    Some(Entity::Player) => {
+                        new_tile.entity = curr_tile.entity;
+                        curr_tile.entity = None;
+                         new_pos = (nx,ny);
+                        // TODO: attack, collect
+                    },
+                    Some(Entity::Dragon) => {
+                        // TODO
+                    }
+                    _ => {}
+                };
+            }
+
+            self.tiles[y as usize][x as usize] = curr_tile;
+            return new_pos;
         }
     }
 
