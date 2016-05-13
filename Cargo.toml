@@ -5,3 +5,4 @@ authors = [ "Thomas Eppers eppi15@yahoo.de", "Florian Oetke mephistopheles@onlin
 
 [dependencies]
 glium = "*"
+cgmath = "*"
