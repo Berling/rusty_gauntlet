@@ -2,7 +2,9 @@
 extern crate glium;
 extern crate rusty_gauntlet;
 use rusty_gauntlet::level::*;
+use rusty_gauntlet::input::*;
 use std::path::Path;
+
 
 fn main() {
     use glium::{DisplayBuild, Surface};
@@ -20,11 +22,12 @@ fn main() {
         target.clear_color(0.5, 0.6, 0.9, 1.0);
         target.finish().unwrap();
 
+        //handle events
+        let input = input::Input::new();
         for ev in display.poll_events() {
-            match ev {
-                glium::glutin::Event::Closed => return,
-                _ => ()
-            }
+        	if input.process_input(ev) {
+        		return;
+        	}
         }
     }
 }
