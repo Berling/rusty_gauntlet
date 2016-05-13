@@ -3,6 +3,7 @@ extern crate glium;
 extern crate rusty_gauntlet;
 use rusty_gauntlet::level::*;
 use rusty_gauntlet::input::*;
+use rusty_gauntlet::ai::*;
 use std::path::Path;
 
 
@@ -14,13 +15,22 @@ fn main() {
         .build_glium()
         .unwrap();
 
-    let mut my_level = level::Level::new(Path::new("test_level.map"));
+    let mut my_level = Level::new(Path::new("test_level.map"));
     let mut player_pos = (2,2);
-    player_pos = my_level.interact(player_pos,level::Direction::Right);
-    player_pos = my_level.interact(player_pos,level::Direction::Right);
-    player_pos = my_level.interact(player_pos,level::Direction::Down);
-    my_level.interact(player_pos,level::Direction::Down);
+    ai_step(&mut my_level, player_pos);
+    ai_step(&mut my_level, player_pos);
+    ai_step(&mut my_level, player_pos);
+    player_pos = my_level.interact(player_pos, Direction::Right);
+    player_pos = my_level.interact(player_pos, Direction::Right);
+    player_pos = my_level.interact(player_pos, Direction::Right);
+    player_pos = my_level.interact(player_pos, Direction::Down);
+    player_pos = my_level.interact(player_pos, Direction::Down);
     my_level.debug_print();
+    let player_score = match my_level.get_entity(player_pos) {
+        Some(Entity::Player{score,..}) => score,
+        _ => 0
+    };
+    println!("Player score: {}", player_score);
 
     loop {
         let mut target = display.draw();

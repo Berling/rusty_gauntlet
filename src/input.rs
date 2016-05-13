@@ -1,7 +1,7 @@
 extern crate glium;
 
 use self::glium::glutin::Event;
-use level::level::Direction;
+use level::Direction;
 
 pub struct Input;
 

@@ -1,4 +1,4 @@
-pub mod level {
+//pub mod level {
     pub enum Direction {
         Up, Down, Left, Right
     }
@@ -20,8 +20,9 @@ pub mod level {
 
     #[derive(Copy, Clone)]
     pub enum Entity {
-        Player,
-        Dragon
+        Player{hp: i32, dmg: i32, score: i32},
+        Dragon{hp: i32, dmg: i32},
+        Treasure
     }
 
     #[derive(Copy, Clone)]
@@ -66,8 +67,9 @@ pub mod level {
                         _ => TileType::Floor
                     };
                     let entity = match c {
-                        '@' => Some(Entity::Player),
-                        'D' => Some(Entity::Dragon),
+                        '@' => Some(Entity::Player{hp:10, dmg:2,score:0}),
+                        'D' => Some(Entity::Dragon{hp:4, dmg:1}),
+                        '$' => Some(Entity::Treasure),
                         _ => None
                     };
                     row.push(Tile{tile_type: tt, entity: entity});
@@ -89,8 +91,9 @@ pub mod level {
             for line in &self.tiles {
                 for tile in line {
                     match tile.entity {
-                        Some(Entity::Player) => print!("@"),
-                        Some(Entity::Dragon) => print!("D"),
+                        Some(Entity::Player{..}) => print!("@"),
+                        Some(Entity::Dragon{..}) => print!("D"),
+                        Some(Entity::Treasure) => print!("$"),
                         None => {
                             match tile.tile_type {
                                 TileType::Floor => print!("."),
@@ -103,6 +106,11 @@ pub mod level {
             }
 
             println!("----------------");
+        }
+
+        pub fn get_entity(&self, pos: (i32,i32)) -> Option<Entity> {
+            let (x,y) = pos;
+            return self.tiles[y as usize][x as usize].entity;
         }
 
         pub fn interact(&mut self, pos: (i32,i32), dir: Direction) -> (i32,i32) {
@@ -119,14 +127,43 @@ pub mod level {
                 }
 
                 match curr_tile.entity {
-                    Some(Entity::Player) => {
-                        new_tile.entity = curr_tile.entity;
-                        curr_tile.entity = None;
-                         new_pos = (nx,ny);
-                        // TODO: attack, collect
+                    Some(Entity::Player{hp,score,dmg:pdmg}) => {
+                        match new_tile.entity {
+                            Some(Entity::Treasure) => {
+                                new_tile.entity = Some(Entity::Player{hp:hp,score:score+1,dmg:pdmg});
+                                curr_tile.entity = None;
+                                new_pos = (nx,ny);
+                            },
+                            Some(Entity::Dragon{hp,dmg}) => {
+                                if hp<=pdmg {
+                                    new_tile.entity = Some(Entity::Treasure);
+                                } else {
+                                    new_tile.entity = Some(Entity::Dragon{hp:hp-pdmg,dmg:dmg});
+                                }
+                            },
+                            _ => {
+                                new_tile.entity = curr_tile.entity;
+                                curr_tile.entity = None;
+                                 new_pos = (nx,ny);
+                            }
+                        }
                     },
-                    Some(Entity::Dragon) => {
-                        // TODO
+                    Some(Entity::Dragon{dmg,..}) => {
+                        match new_tile.entity {
+                            Some(Entity::Player{hp,dmg:pdmg,score}) => {
+                                if hp<=dmg {
+                                    new_tile.entity = None;
+                                } else {
+                                    new_tile.entity = Some(Entity::Player{hp:hp-dmg,score:score,dmg:pdmg});
+                                }
+                            },
+                            Some(Entity::Treasure) => {},
+                            _ => {
+                                new_tile.entity = curr_tile.entity;
+                                curr_tile.entity = None;
+                                 new_pos = (nx,ny);
+                            }
+                        }
                     }
                     _ => {}
                 };
@@ -137,4 +174,4 @@ pub mod level {
         }
     }
 
-}
+//}
