@@ -28,7 +28,7 @@ fn main() {
         target.finish().unwrap();
 
         //handle events
-        let input = input::Input::new();
+        let input = Input::new();
         for ev in display.poll_events() {
         	if input.process_input(ev) {
         		return;
