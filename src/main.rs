@@ -26,11 +26,11 @@ fn main() {
     player_pos = my_level.interact(player_pos, Direction::Down);
     player_pos = my_level.interact(player_pos, Direction::Down);
     my_level.debug_print();
-    let player_score = match my_level.get_entity(player_pos) {
-        Some(Entity::Player{score,..}) => score,
-        _ => 0
+    let (pscore, php) = match my_level.get_entity(player_pos) {
+        Some(Entity::Player{score,hp,..}) => (score,hp),
+        _ => (0,0)
     };
-    println!("Player score: {}", player_score);
+    println!("Player score: {}\nPlayer HP: {}", pscore, php);
 
     loop {
         let mut target = display.draw();

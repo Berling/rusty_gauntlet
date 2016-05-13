@@ -67,7 +67,7 @@
                         _ => TileType::Floor
                     };
                     let entity = match c {
-                        '@' => Some(Entity::Player{hp:10, dmg:2,score:0}),
+                        '@' => Some(Entity::Player{hp:5, dmg:2,score:0}),
                         'D' => Some(Entity::Dragon{hp:4, dmg:1}),
                         '$' => Some(Entity::Treasure),
                         _ => None
