@@ -1,0 +1,7 @@
+[package]
+name = "rusty_gauntlet"
+version = "0.0.1"
+authors = [ "Thomas Eppers eppi15@yahoo.de", "Florian Oetke mephistopheles@onlinehome.de", "Georg Schäfer georg.peter.schaefer@gmail.com" ]
+
+[dependencies]
+glium = "*"
