@@ -128,7 +128,7 @@ fn main() {
 
     loop {
         let mut target = display.draw();
-        target.clear_color(0.5, 0.6, 0.9, 1.0);
+        target.clear_color(0.24, 0.24, 0.24, 1.0);
 
         let (px,py) = input.player_pos;
         let offset_x = SCREEN_WIDTH/2.0 - px as f32 *TILE_SIZE*2f32;
