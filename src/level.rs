@@ -22,7 +22,8 @@
     pub enum Entity {
         Player{hp: i32, dmg: i32, score: i32},
         Dragon{hp: i32, dmg: i32},
-        Treasure
+        Treasure,
+        Potion
     }
 
     #[derive(Copy, Clone)]
@@ -75,6 +76,7 @@
                         '@' => Some(Entity::Player{hp:5, dmg:2,score:0}),
                         'D' => Some(Entity::Dragon{hp:4, dmg:1}),
                         '$' => Some(Entity::Treasure),
+                        'H' => Some(Entity::Potion),
                         _ => None
                     };
                     row.push(Tile{tile_type: tt, entity: entity});
@@ -99,6 +101,7 @@
                         Some(Entity::Player{..}) => print!("@"),
                         Some(Entity::Dragon{..}) => print!("D"),
                         Some(Entity::Treasure) => print!("$"),
+                        Some(Entity::Potion) => print!("H"),
                         None => {
                             match tile.tile_type {
                                 TileType::Floor => print!("."),
@@ -173,6 +176,16 @@
                                     _ => {}
                                 }
                             },
+                            Some(Entity::Potion) => {
+                                new_tile.entity = Some(Entity::Player{hp:hp+4,score:score,dmg:pdmg});
+                                curr_tile.entity = None;
+                                new_pos = (nx,ny);
+
+                                match self.on_player_collected {
+                                    Some(f) => f(&new_tile.entity.unwrap()),
+                                    _ => {}
+                                }
+                            },
                             Some(Entity::Dragon{hp,dmg}) => {
                                 match self.on_player_attacked {
                                     Some(f) => f(&new_tile.entity.unwrap(), &curr_tile.entity.unwrap()),
@@ -211,6 +224,7 @@
                                 }
                             },
                             Some(Entity::Treasure) => {},
+                            Some(Entity::Potion) => {},
                             _ => {
                                 new_tile.entity = curr_tile.entity;
                                 curr_tile.entity = None;
