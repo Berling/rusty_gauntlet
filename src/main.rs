@@ -101,6 +101,10 @@ fn main() {
         .half_extend(Vector2{ x: TILE_SIZE, y: TILE_SIZE })
         .texture_name("sprite_treasure.png")
         .finalize(&display);
+    let mut sprite_potion = sprite::SpriteBuilder::new()
+        .half_extend(Vector2{ x: TILE_SIZE, y: TILE_SIZE })
+        .texture_name("sprite_potion.png")
+        .finalize(&display);
 
     let mut my_level = Level::new(Path::new("test_level.map"));
     my_level.on_player_damaged = Some(on_damaged);
@@ -141,6 +145,10 @@ fn main() {
                     sprite_treasure.set_position(pos);
                     sprite_treasure.draw(&mut target, &program, projection, view);
                 },
+                Some(Entity::Potion) => {
+                    sprite_potion.set_position(pos);
+                    sprite_potion.draw(&mut target, &program, projection, view);
+                },
                 None => {
                     match tile.tile_type {
                         TileType::Floor => {
@@ -159,21 +167,20 @@ fn main() {
         target.finish().unwrap();
 
         let alive = unsafe{ player_alive};
-        if alive {
-            //handle events
-            let mut player_input = Some(true);
-            //loop till player is moved
-            //none means ends game
-            //false means advance game
-            //true means wait for next input
-            while player_input.unwrap() {
-                for ev in display.poll_events() {
-                    player_input = input.process_input(ev, &mut my_level);
-                }
-                if player_input.is_none() {
-                    return;
-                }
+        //handle events
+        let mut player_input = Some(true);
+        //loop till player is moved
+        //none means ends game
+        //false means advance game
+        //true means wait for next input
+        while player_input.unwrap() {
+            for ev in display.poll_events() {
+                player_input = input.process_input(ev, &mut my_level, alive);
+            }
+            if player_input.is_none() {
+                return;
             }
         }
+        
     }
 }
