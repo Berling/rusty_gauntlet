@@ -16,7 +16,7 @@ fn main() {
         .unwrap();
 
     let mut my_level = Level::new(Path::new("test_level.map"));
-    let mut player_pos = (2,2);
+    let mut player_pos = my_level.get_player_pos().unwrap();
     ai_step(&mut my_level, player_pos);
     ai_step(&mut my_level, player_pos);
     ai_step(&mut my_level, player_pos);

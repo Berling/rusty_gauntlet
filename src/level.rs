@@ -113,6 +113,23 @@
             return self.tiles[y as usize][x as usize].entity;
         }
 
+        pub fn get_player_pos(&self) -> Option<(i32,i32)> {
+            let mut y = 0;
+            for line in &self.tiles {
+                let mut x = 0;
+                for tile in line {
+                    match tile.entity {
+                        Some(Entity::Player{..}) => return Some((x,y)),
+                        _ => {}
+                    }
+                    x+=1;
+                }
+                y+=1;
+            }
+
+            return None;
+        }
+
         pub fn interact(&mut self, pos: (i32,i32), dir: Direction) -> (i32,i32) {
             let mut new_pos = pos;
             let (x,y) = pos;

@@ -27,15 +27,15 @@ pub fn ai_step(level : &mut Level, player_pos: (i32,i32)) {
         let dy = (py-y) as f32;
         let distance = (dx*dx + dy*dy).sqrt();
 
-        if distance<5f32 {
+        if distance<6f32 {
             let dir = if dx<0f32 {
                 Direction::Left
             } else if dx>0f32 {
                 Direction::Right
             } else if dy<0f32 {
-                Direction::Down
-            } else {
                 Direction::Up
+            } else {
+                Direction::Down
             };
             level.interact((x,y), dir);
         }
