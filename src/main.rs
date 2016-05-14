@@ -1,10 +1,30 @@
 #[macro_use]
 extern crate glium;
+extern crate cgmath;
 extern crate rusty_gauntlet;
+
+use cgmath::Matrix4;
+use cgmath::Vector2;
+use cgmath::prelude::SquareMatrix;
+use rusty_gauntlet::rendering::sprite;
 use rusty_gauntlet::level::*;
 use rusty_gauntlet::input::*;
 use rusty_gauntlet::ai::*;
 use std::path::Path;
+
+
+fn on_damaged(_: &Entity, _: &Entity) {
+    println!(" > The dragon bites!");
+}
+fn on_attacked(_: &Entity, _: &Entity) {
+    println!(" > You poked the dragon with a stick!");
+}
+fn on_killed(_: &Entity) {
+    println!(" > You died!");
+}
+fn on_collected(_: &Entity) {
+    println!(" > You found a coin!");
+}
 
 fn main() {
     use glium::{DisplayBuild, Surface};
@@ -14,22 +34,131 @@ fn main() {
         .build_glium()
         .unwrap();
 
+    let vertex_shader_src = r#"
+        #version 140
+
+        in vec2 _position;
+        in vec2 _texcoord;
+        in vec4 _color;
+
+        out vec2 texcoord_;
+        out vec4 color_;
+
+        uniform mat4 projection;
+        uniform mat4 view;
+        uniform mat4 model;
+
+        void main() {
+            texcoord_ = _texcoord;
+            color_ = _color;
+            gl_Position = projection * view * model * vec4(_position, 0.0, 1.0);
+        }
+    "#;
+
+    let fragment_shader_src = r#"
+        #version 140
+
+        in vec2 texcoord_;
+        in vec4 color_;
+
+        out vec4 color;
+
+        uniform sampler2D sprite;
+
+        void main() {
+            color = texture(sprite, texcoord_);
+        }
+    "#;
+
+    const SCREEN_WIDTH: f32 = 800.0;
+    const SCREEN_HEIGHT: f32 = 600.0;
+    let projection = cgmath::ortho::<f32>(0.0, SCREEN_WIDTH, SCREEN_HEIGHT, 0.0, 0.1, 10.0);
+    let view = Matrix4::<f32>::identity();
+
+    let program = glium::Program::from_source(&display, vertex_shader_src, fragment_shader_src, None)
+        .unwrap();
+
+    const TILE_SIZE: f32 = 32f32;
+    let mut sprite_wall = sprite::SpriteBuilder::new()
+        .half_extend(Vector2{ x: TILE_SIZE, y: TILE_SIZE })
+        .texture_name("sprite_wall.png")
+        .finalize(&display);
+    let mut sprite_floor = sprite::SpriteBuilder::new()
+        .half_extend(Vector2{ x: TILE_SIZE, y: TILE_SIZE })
+        .texture_name("sprite_floor.png")
+        .finalize(&display);
+    let mut sprite_player = sprite::SpriteBuilder::new()
+        .half_extend(Vector2{ x: TILE_SIZE, y: TILE_SIZE })
+        .texture_name("sprite_player.png")
+        .finalize(&display);
+    let mut sprite_dragon = sprite::SpriteBuilder::new()
+        .half_extend(Vector2{ x: TILE_SIZE, y: TILE_SIZE })
+        .texture_name("sprite_dragon.png")
+        .finalize(&display);
+    let mut sprite_treasure = sprite::SpriteBuilder::new()
+        .half_extend(Vector2{ x: TILE_SIZE, y: TILE_SIZE })
+        .texture_name("sprite_treasure.png")
+        .finalize(&display);
+
     let mut my_level = Level::new(Path::new("test_level.map"));
-    let mut player_pos = (2,2);
+    my_level.on_player_damaged = Some(on_damaged);
+    my_level.on_player_attacked = Some(on_attacked);
+    my_level.on_player_killed = Some(on_killed);
+    my_level.on_player_collected = Some(on_collected);
+
+    let mut player_pos = my_level.get_player_pos().unwrap();
+    ai_step(&mut my_level, player_pos);
+    ai_step(&mut my_level, player_pos);
+    ai_step(&mut my_level, player_pos);
     player_pos = my_level.interact(player_pos, Direction::Right);
     player_pos = my_level.interact(player_pos, Direction::Right);
     player_pos = my_level.interact(player_pos, Direction::Right);
     player_pos = my_level.interact(player_pos, Direction::Down);
     player_pos = my_level.interact(player_pos, Direction::Down);
-    let player_score = match my_level.get_entity(player_pos) {
-        Some(Entity::Player{score,..}) => score,
-        _ => 0
+    let (pscore, php) = match my_level.get_entity(player_pos) {
+        Some(Entity::Player{score,hp,..}) => (score,hp),
+        _ => (0,0)
     };
-    println!("Player score: {}", player_score);
+    println!("Player score: {}\nPlayer HP: {}", pscore, php);
 
     loop {
         let mut target = display.draw();
         target.clear_color(0.5, 0.6, 0.9, 1.0);
+
+        let (px,py) = player_pos;
+        let offset_x = SCREEN_WIDTH/2.0 - px as f32 *TILE_SIZE*2f32;
+        let offset_y = SCREEN_HEIGHT/2.0 - py as f32 *TILE_SIZE*2f32;
+        my_level.foreach(|x,y,tile| {
+            let pos = Vector2{ x: offset_x + TILE_SIZE*2f32*x as f32, y: offset_y + TILE_SIZE*2f32*y as f32 };
+
+            match tile.entity {
+                Some(Entity::Player{..}) => {
+                    sprite_player.set_position(pos);
+                    sprite_player.draw(&mut target, &program, projection, view);
+                },
+                Some(Entity::Dragon{..}) =>  {
+                    sprite_dragon.set_position(pos);
+                    sprite_dragon.draw(&mut target, &program, projection, view);
+                },
+                Some(Entity::Treasure) => {
+                    sprite_treasure.set_position(pos);
+                    sprite_treasure.draw(&mut target, &program, projection, view);
+                },
+                None => {
+                    match tile.tile_type {
+                        TileType::Floor => {
+                            sprite_floor.set_position(pos);
+                            sprite_floor.draw(&mut target, &program, projection, view);
+                        },
+                        TileType::Wall => {
+                            sprite_wall.set_position(pos);
+                            sprite_wall.draw(&mut target, &program, projection, view);
+                        },
+                    }
+                }
+            };
+        });
+
         target.finish().unwrap();
 
         //handle events

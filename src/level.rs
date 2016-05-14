@@ -31,10 +31,15 @@
         pub entity: Option<Entity>
     }
 
+    #[derive(Default)]
     pub struct Level {
         pub width: i32,
         pub height: i32,
-        pub tiles: Vec<Vec<Tile>>
+        pub tiles: Vec<Vec<Tile>>,
+        pub on_player_damaged:   Option<fn(player: &Entity, attacker: &Entity)>,
+        pub on_player_killed:    Option<fn(player: &Entity)>,
+        pub on_player_attacked:  Option<fn(player: &Entity, target: &Entity)>,
+        pub on_player_collected: Option<fn(player: &Entity)>
     }
 
     use std::fs::File;
@@ -67,7 +72,7 @@
                         _ => TileType::Floor
                     };
                     let entity = match c {
-                        '@' => Some(Entity::Player{hp:10, dmg:2,score:0}),
+                        '@' => Some(Entity::Player{hp:5, dmg:2,score:0}),
                         'D' => Some(Entity::Dragon{hp:4, dmg:1}),
                         '$' => Some(Entity::Treasure),
                         _ => None
@@ -83,7 +88,7 @@
                 panic!("Error in map file. Too few rows ({}).", data.len());
             }
 
-            Level {width: w, height: h, tiles: data}
+            Level {width: w, height: h, tiles: data, ..Default::default()}
         }
 
         pub fn debug_print(&self, ) {
@@ -108,9 +113,38 @@
             println!("----------------");
         }
 
+        pub fn foreach<F>(&self, mut f: F) where F: FnMut(i32,i32,&Tile) {
+            let mut y = 0;
+            for line in &self.tiles {
+                let mut x = 0;
+                for tile in line {
+                    f(x,y, tile);
+                    x+=1;
+                }
+                y+=1;
+            }
+        }
+
         pub fn get_entity(&self, pos: (i32,i32)) -> Option<Entity> {
             let (x,y) = pos;
             return self.tiles[y as usize][x as usize].entity;
+        }
+
+        pub fn get_player_pos(&self) -> Option<(i32,i32)> {
+            let mut y = 0;
+            for line in &self.tiles {
+                let mut x = 0;
+                for tile in line {
+                    match tile.entity {
+                        Some(Entity::Player{..}) => return Some((x,y)),
+                        _ => {}
+                    }
+                    x+=1;
+                }
+                y+=1;
+            }
+
+            return None;
         }
 
         pub fn interact(&mut self, pos: (i32,i32), dir: Direction) -> (i32,i32) {
@@ -133,8 +167,18 @@
                                 new_tile.entity = Some(Entity::Player{hp:hp,score:score+1,dmg:pdmg});
                                 curr_tile.entity = None;
                                 new_pos = (nx,ny);
+
+                                match self.on_player_collected {
+                                    Some(f) => f(&new_tile.entity.unwrap()),
+                                    _ => {}
+                                }
                             },
                             Some(Entity::Dragon{hp,dmg}) => {
+                                match self.on_player_attacked {
+                                    Some(f) => f(&new_tile.entity.unwrap(), &curr_tile.entity.unwrap()),
+                                    _ => {}
+                                }
+
                                 if hp<=pdmg {
                                     new_tile.entity = Some(Entity::Treasure);
                                 } else {
@@ -152,8 +196,17 @@
                         match new_tile.entity {
                             Some(Entity::Player{hp,dmg:pdmg,score}) => {
                                 if hp<=dmg {
+                                    match self.on_player_killed {
+                                        Some(f) => f(&new_tile.entity.unwrap()),
+                                        _ => {}
+                                    }
                                     new_tile.entity = None;
+
                                 } else {
+                                    match self.on_player_damaged {
+                                        Some(f) => f(&new_tile.entity.unwrap(), &curr_tile.entity.unwrap()),
+                                        _ => {}
+                                    }
                                     new_tile.entity = Some(Entity::Player{hp:hp-dmg,score:score,dmg:pdmg});
                                 }
                             },
