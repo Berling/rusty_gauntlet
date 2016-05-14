@@ -9,6 +9,10 @@ use cgmath::Vector4;
 use cgmath::prelude::SquareMatrix;
 use rusty_gauntlet::rendering::sprite;
 use rusty_gauntlet::rendering::vertex;
+use rusty_gauntlet::level::*;
+use rusty_gauntlet::ai::*;
+use rusty_gauntlet::input::*;
+use std::path::Path;
 
 fn main() {
     use glium::{DisplayBuild, Surface};
@@ -81,17 +85,35 @@ fn main() {
 
     test.set_position(Vector2{ x: 400.0, y: 300.0 });
 
+    let mut my_level = Level::new(Path::new("test_level.map"));
+    let mut player_pos = my_level.get_player_pos().unwrap();
+    ai_step(&mut my_level, player_pos);
+    ai_step(&mut my_level, player_pos);
+    ai_step(&mut my_level, player_pos);
+    player_pos = my_level.interact(player_pos, Direction::Right);
+    player_pos = my_level.interact(player_pos, Direction::Right);
+    player_pos = my_level.interact(player_pos, Direction::Right);
+    player_pos = my_level.interact(player_pos, Direction::Down);
+    player_pos = my_level.interact(player_pos, Direction::Down);
+    my_level.debug_print();
+    let (pscore, php) = match my_level.get_entity(player_pos) {
+        Some(Entity::Player{score,hp,..}) => (score,hp),
+        _ => (0,0)
+    };
+    println!("Player score: {}\nPlayer HP: {}", pscore, php);
+
     loop {
         let mut target = display.draw();
         target.clear_color(0.5, 0.6, 0.9, 1.0);
         test.draw(&mut target, &program, projection, view);
         target.finish().unwrap();
 
+        //handle events
+        let input = input::Input::new();
         for ev in display.poll_events() {
-            match ev {
-                glium::glutin::Event::Closed => return,
-                _ => ()
-            }
+        	if input.process_input(ev) {
+        		return;
+        	}
         }
     }
 }
