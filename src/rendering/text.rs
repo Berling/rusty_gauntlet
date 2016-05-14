@@ -42,6 +42,6 @@ impl TextRenderer {
             [0.0, 0.0, 1.0, 0.0],
             [2.0 * (position.x / 800.0) - 1.0, -2.0 * (position.y / 600.0) + 1.0, 1.0, 1.0]
         ];
-        glium_text::draw(&text_display, &self.system, surface, matrix, (0.0, 0.0, 0.0, 1.0));
+        glium_text::draw(&text_display, &self.system, surface, matrix, (0.2, 0.9, 0.0, 1.0));
     }
 }
