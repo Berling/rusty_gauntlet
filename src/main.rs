@@ -13,6 +13,7 @@ use rusty_gauntlet::level::*;
 use rusty_gauntlet::ai::*;
 use rusty_gauntlet::input::*;
 use std::path::Path;
+use rusty_gauntlet::rendering::text::TextRenderer;
 
 fn main() {
     use glium::{DisplayBuild, Surface};
@@ -102,10 +103,17 @@ fn main() {
     };
     println!("Player score: {}\nPlayer HP: {}", pscore, php);
 
+    let mut text_renderer = TextRenderer::new(
+        &display,
+        "font.otf",
+        30
+    );
+
     loop {
         let mut target = display.draw();
         target.clear_color(0.5, 0.6, 0.9, 1.0);
         test.draw(&mut target, &program, projection, view);
+        text_renderer.draw(&mut target, "Rusty Gauntlet(TM)", Vector2::<f32>{ x: 0.0, y: 590.0 });
         target.finish().unwrap();
 
         //handle events
