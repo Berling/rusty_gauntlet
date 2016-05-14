@@ -6,7 +6,6 @@ use rusty_gauntlet::input::*;
 use rusty_gauntlet::ai::*;
 use std::path::Path;
 
-
 fn main() {
     use glium::{DisplayBuild, Surface};
     let display = glium::glutin::WindowBuilder::new()
@@ -17,15 +16,11 @@ fn main() {
 
     let mut my_level = Level::new(Path::new("test_level.map"));
     let mut player_pos = (2,2);
-    ai_step(&mut my_level, player_pos);
-    ai_step(&mut my_level, player_pos);
-    ai_step(&mut my_level, player_pos);
     player_pos = my_level.interact(player_pos, Direction::Right);
     player_pos = my_level.interact(player_pos, Direction::Right);
     player_pos = my_level.interact(player_pos, Direction::Right);
     player_pos = my_level.interact(player_pos, Direction::Down);
     player_pos = my_level.interact(player_pos, Direction::Down);
-    my_level.debug_print();
     let player_score = match my_level.get_entity(player_pos) {
         Some(Entity::Player{score,..}) => score,
         _ => 0
@@ -39,10 +34,22 @@ fn main() {
 
         //handle events
         let input = Input::new();
-        for ev in display.poll_events() {
-        	if input.process_input(ev) {
-        		return;
-        	}
+        let mut player_input = Some(true);
+        //loop till player is moved
+        //none means ends game
+        //false means advance game
+        //true means wait for next input
+        while player_input.unwrap() {
+            for ev in display.poll_events() {
+                player_input = input.process_input(ev);
+            }
+            if player_input.is_none() {
+                return;
+            }
         }
+
+        my_level.debug_print();
+        //advance ai
+        ai_step(&mut my_level, player_pos);
     }
 }
