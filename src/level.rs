@@ -113,6 +113,18 @@
             println!("----------------");
         }
 
+        pub fn foreach<F>(&self, mut f: F) where F: FnMut(i32,i32,&Tile) {
+            let mut y = 0;
+            for line in &self.tiles {
+                let mut x = 0;
+                for tile in line {
+                    f(x,y, tile);
+                    x+=1;
+                }
+                y+=1;
+            }
+        }
+
         pub fn get_entity(&self, pos: (i32,i32)) -> Option<Entity> {
             let (x,y) = pos;
             return self.tiles[y as usize][x as usize].entity;
