@@ -31,10 +31,15 @@
         pub entity: Option<Entity>
     }
 
+    #[derive(Default)]
     pub struct Level {
         pub width: i32,
         pub height: i32,
-        pub tiles: Vec<Vec<Tile>>
+        pub tiles: Vec<Vec<Tile>>,
+        pub on_player_damaged:   Option<fn(player: &Entity, attacker: &Entity)>,
+        pub on_player_killed:    Option<fn(player: &Entity)>,
+        pub on_player_attacked:  Option<fn(player: &Entity, target: &Entity)>,
+        pub on_player_collected: Option<fn(player: &Entity)>
     }
 
     use std::fs::File;
@@ -83,7 +88,7 @@
                 panic!("Error in map file. Too few rows ({}).", data.len());
             }
 
-            Level {width: w, height: h, tiles: data}
+            Level {width: w, height: h, tiles: data, ..Default::default()}
         }
 
         pub fn debug_print(&self, ) {
@@ -150,8 +155,18 @@
                                 new_tile.entity = Some(Entity::Player{hp:hp,score:score+1,dmg:pdmg});
                                 curr_tile.entity = None;
                                 new_pos = (nx,ny);
+
+                                match self.on_player_collected {
+                                    Some(f) => f(&new_tile.entity.unwrap()),
+                                    _ => {}
+                                }
                             },
                             Some(Entity::Dragon{hp,dmg}) => {
+                                match self.on_player_attacked {
+                                    Some(f) => f(&new_tile.entity.unwrap(), &curr_tile.entity.unwrap()),
+                                    _ => {}
+                                }
+
                                 if hp<=pdmg {
                                     new_tile.entity = Some(Entity::Treasure);
                                 } else {
@@ -169,8 +184,17 @@
                         match new_tile.entity {
                             Some(Entity::Player{hp,dmg:pdmg,score}) => {
                                 if hp<=dmg {
+                                    match self.on_player_killed {
+                                        Some(f) => f(&new_tile.entity.unwrap()),
+                                        _ => {}
+                                    }
                                     new_tile.entity = None;
+
                                 } else {
+                                    match self.on_player_damaged {
+                                        Some(f) => f(&new_tile.entity.unwrap(), &curr_tile.entity.unwrap()),
+                                        _ => {}
+                                    }
                                     new_tile.entity = Some(Entity::Player{hp:hp-dmg,score:score,dmg:pdmg});
                                 }
                             },

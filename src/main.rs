@@ -7,6 +7,19 @@ use rusty_gauntlet::input::*;
 use std::path::Path;
 
 
+fn on_damaged(_: &Entity, _: &Entity) {
+    println!(" > The dragon bites!");
+}
+fn on_attacked(_: &Entity, _: &Entity) {
+    println!(" > You poked the dragon with a stick!");
+}
+fn on_killed(_: &Entity) {
+    println!(" > You died!");
+}
+fn on_collected(_: &Entity) {
+    println!(" > You found a coin!");
+}
+
 fn main() {
     use glium::{DisplayBuild, Surface};
     let display = glium::glutin::WindowBuilder::new()
@@ -16,6 +29,11 @@ fn main() {
         .unwrap();
 
     let mut my_level = Level::new(Path::new("test_level.map"));
+    my_level.on_player_damaged = Some(on_damaged);
+    my_level.on_player_attacked = Some(on_attacked);
+    my_level.on_player_killed = Some(on_killed);
+    my_level.on_player_collected = Some(on_collected);
+
     let mut player_pos = my_level.get_player_pos().unwrap();
     ai_step(&mut my_level, player_pos);
     ai_step(&mut my_level, player_pos);
