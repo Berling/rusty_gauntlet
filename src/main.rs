@@ -12,6 +12,7 @@ use rusty_gauntlet::input::*;
 use std::path::Path;
 use rusty_gauntlet::rendering::text::TextRenderer;
 use std::string::String;
+use cgmath::Vector4;
 
 
 static mut player_alive: bool = true;
@@ -126,6 +127,12 @@ fn main() {
         45
     );
 
+    let mut dead_text_renderer = TextRenderer::new(
+        &display,
+        "font.otf",
+        70
+    );
+
     loop {
         let mut target = display.draw();
         target.clear_color(0.24, 0.24, 0.24, 1.0);
@@ -174,11 +181,15 @@ fn main() {
         let hp_label = "      Health; ".to_string();
         let hp = php.to_string();
         let final_label = coin_label + coin.as_str() + hp_label.as_str() + hp.as_str();
-        text_renderer.draw(&mut target, final_label.as_str(), Vector2::<f32>{ x: 5.0, y: 590.0 });
+        text_renderer.draw(&mut target, final_label.as_str(), Vector2::<f32>{ x: 5.0, y: 590.0 }, Vector4::<f32>{ x: 0.2, y: 0.9, z: 0.0, w: 1.0});
+
+        let alive = unsafe{ player_alive};
+        if !alive {
+            dead_text_renderer.draw(&mut target, "YOU'RE DEAD!   D   E   D!!!   DEAD!", Vector2::<f32>{ x: 27.0, y: 300.0 }, Vector4::<f32>{ x: 0.8, y: 0.0, z: 0.0, w: 1.0});
+        }
 
         target.finish().unwrap();
 
-        let alive = unsafe{ player_alive};
         if alive {
             //handle events
             let mut player_input = Some(true);

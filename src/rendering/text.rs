@@ -11,6 +11,7 @@ use glium::backend::Facade;
 use self::cgmath::Matrix4;
 use self::cgmath::prelude::SquareMatrix;
 use self::cgmath::Vector2;
+use self::cgmath::Vector4;
 
 pub struct TextRenderer {
     system: TextSystem,
@@ -33,7 +34,7 @@ impl TextRenderer {
         }
     }
 
-    pub fn draw(&mut self, surface: &mut Frame, text: &str, position: Vector2<f32>) {
+    pub fn draw(&mut self, surface: &mut Frame, text: &str, position: Vector2<f32>, color: Vector4<f32>) {
         let text_display = TextDisplay::new(&self.system, &self.font, text);
         let scale = self.font_size / 600.0;
         let matrix = [
@@ -42,6 +43,6 @@ impl TextRenderer {
             [0.0, 0.0, 1.0, 0.0],
             [2.0 * (position.x / 800.0) - 1.0, -2.0 * (position.y / 600.0) + 1.0, 1.0, 1.0]
         ];
-        glium_text::draw(&text_display, &self.system, surface, matrix, (0.2, 0.9, 0.0, 1.0));
+        glium_text::draw(&text_display, &self.system, surface, matrix, (color.x, color.y, color.z, color.w));
     }
 }
