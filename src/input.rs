@@ -4,7 +4,7 @@ use self::glium::glutin::Event;
 use level::{Direction, Level};
 
 pub struct Input {
-    player_pos: (i32, i32),
+    pub player_pos: (i32, i32),
 }
 
 impl Input {
@@ -12,7 +12,7 @@ impl Input {
     pub fn new(player_pos: (i32, i32)) -> Input {
         Input {player_pos:player_pos}
     }
-    
+
     pub fn process_input(&mut self, event:Event, level:&mut Level) -> Option<bool> {
         use self::glium::glutin::Event::KeyboardInput as Keyboard;
         use self::glium::glutin::{ElementState as State, VirtualKeyCode as KeyCode};
@@ -30,10 +30,7 @@ impl Input {
 
     pub fn move_dir(&mut self, dir:Direction, mut level:&mut Level) -> Option<bool> {
         self.player_pos = level.interact(self.player_pos, dir);
-        let (x,y) = self.player_pos;
-        println!("xpos {}\nypos {}", x, y);
 
-        level.debug_print();
         //advance ai
         use ai::ai_step;
         ai_step(&mut level, self.player_pos);

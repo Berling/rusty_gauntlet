@@ -9,9 +9,10 @@ use cgmath::prelude::SquareMatrix;
 use rusty_gauntlet::rendering::sprite;
 use rusty_gauntlet::level::*;
 use rusty_gauntlet::input::*;
-use rusty_gauntlet::ai::*;
 use std::path::Path;
 
+
+static mut player_alive: bool = true;
 
 fn on_damaged(_: &Entity, _: &Entity) {
     println!(" > The dragon bites!");
@@ -21,6 +22,7 @@ fn on_attacked(_: &Entity, _: &Entity) {
 }
 fn on_killed(_: &Entity) {
     println!(" > You died!");
+    unsafe{ player_alive = false; }
 }
 fn on_collected(_: &Entity) {
     println!(" > You found a coin!");
@@ -107,25 +109,20 @@ fn main() {
     my_level.on_player_collected = Some(on_collected);
 
     let mut player_pos = my_level.get_player_pos().unwrap();
-    ai_step(&mut my_level, player_pos);
-    ai_step(&mut my_level, player_pos);
-    ai_step(&mut my_level, player_pos);
-    player_pos = my_level.interact(player_pos, Direction::Right);
-    player_pos = my_level.interact(player_pos, Direction::Right);
-    player_pos = my_level.interact(player_pos, Direction::Right);
-    player_pos = my_level.interact(player_pos, Direction::Down);
-    player_pos = my_level.interact(player_pos, Direction::Down);
+    /*
     let (pscore, php) = match my_level.get_entity(player_pos) {
         Some(Entity::Player{score,hp,..}) => (score,hp),
         _ => (0,0)
     };
     println!("Player score: {}\nPlayer HP: {}", pscore, php);
+*/
+    let mut input = Input::new(player_pos);
 
     loop {
         let mut target = display.draw();
         target.clear_color(0.5, 0.6, 0.9, 1.0);
 
-        let (px,py) = player_pos;
+        let (px,py) = input.player_pos;
         let offset_x = SCREEN_WIDTH/2.0 - px as f32 *TILE_SIZE*2f32;
         let offset_y = SCREEN_HEIGHT/2.0 - py as f32 *TILE_SIZE*2f32;
         my_level.foreach(|x,y,tile| {
@@ -161,19 +158,21 @@ fn main() {
 
         target.finish().unwrap();
 
-        //handle events
-        let mut input = Input::new(player_pos);
-        let mut player_input = Some(true);
-        //loop till player is moved
-        //none means ends game
-        //false means advance game
-        //true means wait for next input
-        while player_input.unwrap() {
-            for ev in display.poll_events() {
-                player_input = input.process_input(ev, &mut my_level);
-            }
-            if player_input.is_none() {
-                return;
+        let alive = unsafe{ player_alive};
+        if alive {
+            //handle events
+            let mut player_input = Some(true);
+            //loop till player is moved
+            //none means ends game
+            //false means advance game
+            //true means wait for next input
+            while player_input.unwrap() {
+                for ev in display.poll_events() {
+                    player_input = input.process_input(ev, &mut my_level);
+                }
+                if player_input.is_none() {
+                    return;
+                }
             }
         }
     }
