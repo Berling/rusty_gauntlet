@@ -1,5 +1,4 @@
 use level::*;
-use std::f32;
 
 pub fn ai_step(level : &mut Level, player_pos: (i32,i32)) {
     let mut x = 0;
