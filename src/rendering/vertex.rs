@@ -1,7 +1,15 @@
 extern crate cgmath;
+extern crate glium;
+
+use std::str;
+use std::borrow::Cow;
+use std::mem::size_of;
+
 use self::cgmath::Vector2;
 use self::cgmath::Vector4;
+use self::glium::vertex;
 
+#[derive(Copy, Clone)]
 pub struct Vertex {
     pub position: Vector2<f32>,
     pub color: Vector4<f32>,
@@ -32,5 +40,16 @@ impl VertexBuilder {
 
     pub fn finalize(&self) -> Vertex {
         Vertex { position: self.position, color: self.color }
+    }
+}
+
+impl vertex::Vertex for Vertex {
+    fn build_bindings() -> vertex::VertexFormat {
+        Cow::Owned::<'static, [(Cow<'static, str>, usize, vertex::AttributeType)]>(
+            vec![
+                (Cow::Owned(String::from("_position")), 0, vertex::AttributeType::F32F32),
+                (Cow::Owned(String::from("_color")), size_of::<Vector2<f32>>(), vertex::AttributeType::F32F32F32F32),
+            ]
+        )
     }
 }
