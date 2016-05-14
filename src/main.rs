@@ -11,6 +11,7 @@ use rusty_gauntlet::level::*;
 use rusty_gauntlet::input::*;
 use std::path::Path;
 use rusty_gauntlet::rendering::text::TextRenderer;
+use std::string::String;
 
 
 static mut player_alive: bool = true;
@@ -122,7 +123,7 @@ fn main() {
     let mut text_renderer = TextRenderer::new(
         &display,
         "font.otf",
-        30
+        45
     );
 
     loop {
@@ -163,7 +164,17 @@ fn main() {
             };
         });
 
-        text_renderer.draw(&mut target, "Rusty Gauntlet(TM)", Vector2::<f32>{ x: 0.0, y: 590.0 });
+        let (pscore, php) = match my_level.get_entity(input.player_pos) {
+            Some(Entity::Player{score,hp,..}) => (score,hp),
+            _ => (0,0)
+        };
+
+        let coin_label = "Coin: ".to_string();
+        let coin = pscore.to_string();
+        let hp_label = "      Health; ".to_string();
+        let hp = php.to_string();
+        let final_label = coin_label + coin.as_str() + hp_label.as_str() + hp.as_str();
+        text_renderer.draw(&mut target, final_label.as_str(), Vector2::<f32>{ x: 5.0, y: 590.0 });
 
         target.finish().unwrap();
 
