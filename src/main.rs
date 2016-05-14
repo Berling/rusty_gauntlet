@@ -33,7 +33,7 @@ fn main() {
         target.finish().unwrap();
 
         //handle events
-        let input = Input::new();
+        let mut input = Input::new(player_pos);
         let mut player_input = Some(true);
         //loop till player is moved
         //none means ends game
@@ -41,15 +41,11 @@ fn main() {
         //true means wait for next input
         while player_input.unwrap() {
             for ev in display.poll_events() {
-                player_input = input.process_input(ev);
+                player_input = input.process_input(ev, &mut my_level);
             }
             if player_input.is_none() {
                 return;
             }
         }
-
-        my_level.debug_print();
-        //advance ai
-        ai_step(&mut my_level, player_pos);
     }
 }
