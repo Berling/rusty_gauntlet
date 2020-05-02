@@ -8,8 +8,6 @@ use glium::Frame;
 use std::path::Path;
 use std::fs::File;
 use glium::backend::Facade;
-use self::cgmath::Matrix4;
-use self::cgmath::prelude::SquareMatrix;
 use self::cgmath::Vector2;
 use self::cgmath::Vector4;
 

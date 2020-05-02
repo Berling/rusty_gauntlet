@@ -1,16 +1,12 @@
 extern crate glium;
 extern crate cgmath;
 
-use std::convert;
-use std::io::Cursor;
 use std::string::String;
 use std::path::Path;
 use self::cgmath::Matrix4;
 use self::cgmath::Vector2;
 use self::cgmath::Vector3;
 use self::cgmath::Vector4;
-use self::cgmath::VectorSpace;
-use self::glium::uniforms;
 use self::glium::Surface;
 use self::glium::texture::texture2d::Texture2d;
 use image;

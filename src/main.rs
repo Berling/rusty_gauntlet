@@ -1,4 +1,4 @@
-#[macro_use]
+
 extern crate glium;
 extern crate cgmath;
 extern crate rusty_gauntlet;
@@ -11,11 +11,10 @@ use rusty_gauntlet::level::*;
 use rusty_gauntlet::input::*;
 use std::path::Path;
 use rusty_gauntlet::rendering::text::TextRenderer;
-use std::string::String;
 use cgmath::Vector4;
 
 
-static mut player_alive: bool = true;
+static mut PLAYER_ALIVE: bool = true;
 
 fn on_damaged(_: &Entity, _: &Entity) {
     println!(" > The dragon bites!");
@@ -25,7 +24,7 @@ fn on_attacked(_: &Entity, _: &Entity) {
 }
 fn on_killed(_: &Entity) {
     println!(" > You died!");
-    unsafe{ player_alive = false; }
+    unsafe{ PLAYER_ALIVE = false; }
 }
 fn on_collected(_: &Entity) {
     println!(" > You found a coin!");
@@ -115,7 +114,7 @@ fn main() {
     my_level.on_player_killed = Some(on_killed);
     my_level.on_player_collected = Some(on_collected);
 
-    let mut player_pos = my_level.get_player_pos().unwrap();
+    let player_pos = my_level.get_player_pos().unwrap();
     /*
     let (pscore, php) = match my_level.get_entity(player_pos) {
         Some(Entity::Player{score,hp,..}) => (score,hp),
@@ -191,7 +190,7 @@ fn main() {
         let final_label = coin_label + coin.as_str() + hp_label.as_str() + hp.as_str();
         text_renderer.draw(&mut target, final_label.as_str(), Vector2::<f32>{ x: 5.0, y: 590.0 }, Vector4::<f32>{ x: 0.2, y: 0.9, z: 0.0, w: 1.0});
 
-        let alive = unsafe{ player_alive};
+        let alive = unsafe{ PLAYER_ALIVE};
         if !alive {
             dead_text_renderer.draw(&mut target, "YOU'RE DEAD!   D   E   D!!!   DEAD!", Vector2::<f32>{ x: 27.0, y: 300.0 }, Vector4::<f32>{ x: 0.8, y: 0.0, z: 0.0, w: 1.0});
         }
